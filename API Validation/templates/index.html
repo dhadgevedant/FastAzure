@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Registration</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 800px;
+            margin: 40px auto;
+            background: #f4f4f4;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .employee {
+            background: #fff;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .error {
+            color: red;
+            margin-top: 15px;
+        }
+
+        .success {
+            color: green;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Employee Registration</h2>
+
+    <form id="employeeForm">
+        <label>Name</label>
+        <input type="text" id="name" required>
+
+        <label>Email</label>
+        <input type="email" id="email" required>
+
+        <label>Employee ID (EMP-1234)</label>
+        <input type="text" id="employee_id" required>
+
+        <label>Date of Birth</label>
+        <input type="date" id="date_of_birth" required>
+
+        <label>Password</label>
+        <input type="password" id="password" required>
+
+        <label>Department</label>
+        <input type="text" id="department">
+
+        <button type="submit">
+            Register Employee
+        </button>
+    </form>
+
+    <div id="message"></div>
+</div>
+
+<div class="card" style="margin-top:30px;">
+    <h2>Registered Employees</h2>
+
+    <div id="employeeList"></div>
+</div>
+
+<script>
+async function loadEmployees() {
+    const response = await fetch('/employees');
+    const data = await response.json();
+
+    const list = document.getElementById('employeeList');
+    list.innerHTML = '';
+
+    data.forEach(emp => {
+        list.innerHTML += `
+            <div class="employee">
+                <strong>${emp.name}</strong><br>
+                ${emp.email}<br>
+                ${emp.employee_id}<br>
+                ${emp.department || 'No Department'}
+            </div>
+        `;
+    });
+}
+
+document.getElementById('employeeForm')
+.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const body = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        employee_id: document.getElementById('employee_id').value,
+        date_of_birth: document.getElementById('date_of_birth').value,
+        password: document.getElementById('password').value,
+        department: document.getElementById('department').value
+    };
+
+    const response = await fetch('/employees', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    });
+
+    const message = document.getElementById('message');
+
+    if (response.ok) {
+        message.className = 'success';
+        message.innerHTML = 'Employee registered successfully!';
+        document.getElementById('employeeForm').reset();
+        loadEmployees();
+    } else {
+        const error = await response.json();
+        message.className = 'error';
+        message.innerHTML =
+            error.detail
+                .map(e => e.msg)
+                .join('<br>');
+    }
+});
+
+loadEmployees();
+</script>
+
+</body>
+</html>
